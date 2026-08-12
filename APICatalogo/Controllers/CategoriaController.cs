@@ -1,4 +1,5 @@
 ﻿using APICatalogo.Data;
+using APICatalogo.DTOS;
 using APICatalogo.Interface;
 using APICatalogo.Models;
 using APICatalogo.Services;
@@ -40,39 +41,60 @@ public class CategoriaController : ControllerBase
 
 
     [HttpGet]
-    public ActionResult GetCategorias() => Ok(_unitOfWork.CategoriaRepository.GetAll());
+    public ActionResult<IEnumerable<CategoriaDTO>> GetCategorias() => Ok(_unitOfWork.CategoriaRepository.GetAll());
 
 
     [HttpGet("{id:int}", Name = "ObterCategoria")]
 
-    public ActionResult GetCategoria(int id)
+    public ActionResult<CategoriaDTO> GetCategoria(int id)
     {
         var categoria = _unitOfWork.CategoriaRepository.Get(c => c.CategoriaId == id);
         if (categoria is null) return NotFound();
-        return Ok(categoria);
+
+        var categoriaDTO = new CategoriaDTO
+        {
+            CategoriaId = categoria.CategoriaId,
+            Nome = categoria.Nome,
+            ImageUrl = categoria.ImageUrl
+        };
+
+        return Ok(categoriaDTO);
     }
 
     [HttpPost]
-    public ActionResult PostCategoria(Categoria categoria)
+    public ActionResult PostCategoria(CategoriaDTO categoriaDTO)
     {
-        if (categoria == null) return BadRequest();
+        if (categoriaDTO == null) return BadRequest();
+
+        var categoria = new Categoria
+        {
+            CategoriaId = categoriaDTO.CategoriaId,
+            Nome = categoriaDTO.Nome,
+            ImageUrl = categoriaDTO.ImageUrl
+        };
         var categoriaCriada = _unitOfWork.CategoriaRepository.Create(categoria);
 
         return new CreatedAtRouteResult("ObterCategoria", new { id = categoriaCriada.CategoriaId }, categoriaCriada);
     }
 
     [HttpPut("{id:int}")]
-    public ActionResult PutCategoria(int id, Categoria categoria)
+    public ActionResult PutCategoria(int id, CategoriaDTO categoriaDTO)
     {
-        if (id != categoria.CategoriaId) return BadRequest();
+        if (id != categoriaDTO.CategoriaId) return BadRequest();
 
+        var categoria = new Categoria
+        {
+            CategoriaId = categoriaDTO.CategoriaId,
+            Nome = categoriaDTO.Nome,
+            ImageUrl = categoriaDTO.ImageUrl
+        };
         var categoriaAtualizada = _unitOfWork.CategoriaRepository.Update(categoria);
         return Ok(categoriaAtualizada);
     }
 
 
     [HttpDelete("{id:int}")]
-    public ActionResult DeleteCategoria(int id)
+    public ActionResult<CategoriaDTO> DeleteCategoria(int id)
     {
         var categoria = _unitOfWork.CategoriaRepository.Get(c => c.CategoriaId == id);
 
