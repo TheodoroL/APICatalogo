@@ -1,7 +1,7 @@
 ﻿using APICatalogo.Data;
 using APICatalogo.DTOS;
 using APICatalogo.Interface;
-using APICatalogo.Models;
+using APICatalogo.Mapping;
 using APICatalogo.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -41,7 +41,7 @@ public class CategoriaController : ControllerBase
 
 
     [HttpGet]
-    public ActionResult<IEnumerable<CategoriaDTO>> GetCategorias() => Ok(_unitOfWork.CategoriaRepository.GetAll());
+    public ActionResult<IEnumerable<CategoriaDTO>> GetCategorias() => Ok(_unitOfWork.CategoriaRepository.GetAll().ToCategoriaDTOList());
 
 
     [HttpGet("{id:int}", Name = "ObterCategoria")]
@@ -51,12 +51,7 @@ public class CategoriaController : ControllerBase
         var categoria = _unitOfWork.CategoriaRepository.Get(c => c.CategoriaId == id);
         if (categoria is null) return NotFound();
 
-        var categoriaDTO = new CategoriaDTO
-        {
-            CategoriaId = categoria.CategoriaId,
-            Nome = categoria.Nome,
-            ImageUrl = categoria.ImageUrl
-        };
+        var categoriaDTO = categoria.ToCategoriaDTO();
 
         return Ok(categoriaDTO);
     }
@@ -64,15 +59,10 @@ public class CategoriaController : ControllerBase
     [HttpPost]
     public ActionResult PostCategoria(CategoriaDTO categoriaDTO)
     {
-        if (categoriaDTO == null) return BadRequest();
+        if (categoriaDTO is null) return BadRequest();
 
-        var categoria = new Categoria
-        {
-            CategoriaId = categoriaDTO.CategoriaId,
-            Nome = categoriaDTO.Nome,
-            ImageUrl = categoriaDTO.ImageUrl
-        };
-        var categoriaCriada = _unitOfWork.CategoriaRepository.Create(categoria);
+        var categoria = categoriaDTO.ToCategoria();
+        var categoriaCriada = _unitOfWork.CategoriaRepository.Create(categoria!);
 
         return new CreatedAtRouteResult("ObterCategoria", new { id = categoriaCriada.CategoriaId }, categoriaCriada);
     }
@@ -82,14 +72,10 @@ public class CategoriaController : ControllerBase
     {
         if (id != categoriaDTO.CategoriaId) return BadRequest();
 
-        var categoria = new Categoria
-        {
-            CategoriaId = categoriaDTO.CategoriaId,
-            Nome = categoriaDTO.Nome,
-            ImageUrl = categoriaDTO.ImageUrl
-        };
-        var categoriaAtualizada = _unitOfWork.CategoriaRepository.Update(categoria);
-        return Ok(categoriaAtualizada);
+        var categoria = categoriaDTO.ToCategoria();
+
+        var categoriaAtualizada = _unitOfWork.CategoriaRepository.Update(categoria!);
+        return Ok(categoriaAtualizada.ToCategoriaDTO());
     }
 
 
@@ -102,6 +88,6 @@ public class CategoriaController : ControllerBase
 
         _unitOfWork.CategoriaRepository.Delete(categoria);
 
-        return Ok(categoria);
+        return Ok(categoria.ToCategoriaDTO());
     }
 }
