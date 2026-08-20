@@ -4,6 +4,7 @@ using APICatalogo.Extensions;
 using APICatalogo.Filters;
 using APICatalogo.Interface;
 using APICatalogo.Loggin;
+using APICatalogo.Mapping;
 using APICatalogo.Repository;
 using APICatalogo.Services;
 using Microsoft.EntityFrameworkCore;
@@ -45,6 +46,10 @@ builder.Services.AddScoped<IProdutoRepository, ProdutoRepository>();
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
+builder.Services.AddAutoMapper(cfg =>
+{
+    cfg.AddProfile<ProdutoDTOAutoMappingProfile>();
+});
 
 builder.Services.AddControllers(options =>
 {
