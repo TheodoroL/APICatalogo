@@ -6,6 +6,7 @@ using APICatalogo.Pagination;
 using AutoMapper;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 
 namespace APICatalogo.Controllers;
 
@@ -26,10 +27,19 @@ public class ProdutosController : ControllerBase
     {
         var produtos = _unitOfWork.ProdutoRepository.GetProdutos(produtosParameters);
 
-        if (produtos is null) BadRequest();
+        var metadata = new
+        {
+            produtos.TotalCount,
+            produtos.PageSize,
+            produtos.CurrentPage,
+            produtos.TotalPages,
+            produtos.HashNext,
+            produtos.HashPrevious
+        };
+
+        Response.Headers.Append("X-Pagination", JsonConvert.SerializeObject(metadata));
 
         var produtosDTO = _mapper.Map<IEnumerable<ProdutoDTO>>(produtos);
-
         return Ok(produtosDTO);
     }
 

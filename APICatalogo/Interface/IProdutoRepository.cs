@@ -5,5 +5,5 @@ namespace APICatalogo.Interface;
 
 public interface IProdutoRepository : IRepository<Produto>
 {
-    IEnumerable<Produto> GetProdutos(ProdutoParameters produtoParameters);
+    PagedList<Produto> GetProdutos(ProdutoParameters produtoParameters);
 }
