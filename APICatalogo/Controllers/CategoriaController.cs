@@ -2,8 +2,10 @@
 using APICatalogo.DTOS;
 using APICatalogo.Interface;
 using APICatalogo.Mapping;
+using APICatalogo.Pagination;
 using APICatalogo.Services;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 
 namespace APICatalogo.Controllers;
 
@@ -13,6 +15,7 @@ public class CategoriaController : ControllerBase
 {
     private readonly IConfiguration _configuration;
     private readonly IUnitOfWork _unitOfWork;
+    //private readonly IMapper _mapper;
     public CategoriaController(AppDataContext context, IConfiguration configuration, IUnitOfWork unitOfWork)
     {
         _configuration = configuration;
@@ -36,6 +39,27 @@ public class CategoriaController : ControllerBase
     public ActionResult<string> GetSaudacaoSemFromService(IMeuServicoe meuServico, string nome) => meuServico.Saudacao(nome);
 
 
+    [HttpGet("pagination")]
+    public ActionResult<IEnumerable<CategoriaDTO>> GetCategoriasPaginacaoAsync([FromQuery] CategoriasParameters categoriasParameters)
+    {
+        var categorias = _unitOfWork.CategoriaRepository.GetCategorias(categoriasParameters);
+
+        var metadata = new
+        {
+            categorias.TotalCount,
+            categorias.PageSize,
+            categorias.CurrentPage,
+            categorias.TotalPages,
+            categorias.HashNext,
+            categorias.HashPrevious
+        };
+
+        Response.Headers.Append("X-Pagination", JsonConvert.SerializeObject(metadata));
+
+        var categoriasDTO = categorias.ToCategoriaDTOList();
+
+        return Ok(categoriasDTO);
+    }
     [HttpGet("produtos")]
     public ActionResult GetCategoriasProdutos() => Ok(_unitOfWork.CategoriaRepository.GetCategoriasProdutos());
 
